@@ -1,0 +1,7 @@
+.pio
+.vscode/**
+.history
+
+include/secrets.h
+
+
