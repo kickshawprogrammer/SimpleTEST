@@ -7,6 +7,8 @@
 //                (http://www.platformio.org/) development environment.
 //
 //  History:      09/10/2022 - Original version.
+//                09/16/2022 - Changed runTests() to return an int value to
+//                             indicate the number of failed tests.
 //  
 //------------------------------------------------------------------------------
 //  Feel free to use in any way you wish; but please, be kind and do good!
@@ -14,7 +16,7 @@
 #include <unity.h>
 
 #ifdef ARDUINO
-# include <Arduino.h>
+  #include <Arduino.h>
 #endif
 
 #include <functional>
@@ -41,7 +43,7 @@ class test_suite {
       m_Tests.push_back(std::make_tuple(name, func, line));
     }
 
-    void runTests(void) {
+    int runTests(void) {
       UNITY_BEGIN();
 
       for (TestItem test : m_Tests) {
@@ -52,7 +54,7 @@ class test_suite {
         UnityDefaultTestRun(func, name.c_str(), line);
       }
 
-      UNITY_END();
+      return UNITY_END();
     }
 
   private:
@@ -74,21 +76,20 @@ static auto_register autoRegister_##test_name(#test_name, test_name, __LINE__); 
 void test_name(void)
 
 #ifdef MAIN_DEFINED
-  // You can still define your own main() function, if desired. Useful for
-  // when you want to combine several test files into a single test program
-# define RUN_ALL_TESTS()
+  // You can still define your own main() function, if desired. 
+  #define RUN_ALL_TESTS()
 #elif defined(ARDUINO)
-# define RUN_ALL_TESTS()                    \
-    void loop(void) { /* no-op */ }         \
-    void setup(void) {                      \
-      delay(2000);                          \
-      test_suite::getInstance().runTests(); \
-    }                                       \
+  #define RUN_ALL_TESTS()                          \
+    void loop(void) { /* no-op */ }                \
+    void setup(void) {                             \
+      delay(2000);                                 \
+      test_suite::getInstance().runTests();        \
+    }                                              \
     struct eat_this_semicolon {};
 #else
-# define RUN_ALL_TESTS()                    \
-  int main(int argc, const char* argv[]) {  \
-    test_suite::getInstance().runTests();   \
-  }                                         \
-  struct eat_this_semicolon {};
+  #define RUN_ALL_TESTS()                          \
+    int main(int argc, const char* argv[]) {       \
+      return test_suite::getInstance().runTests(); \
+    }                                              \
+    struct eat_this_semicolon {};
 #endif // MAIN_DEFINED
